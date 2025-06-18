@@ -1,21 +1,23 @@
 # File: backend_perpustakaan/index.php
 
 1. Jalankan composer install terlebih dahulu jika belum
-   composer create-project codeigniter4/appstarter backend_perpustakaan
+```
+    composer create-project codeigniter4/appstarter backend_perpustakaan
+```
 
 2. Konfigurasi Database (di .env file)
+```
     database.default.hostname = localhost
     database.default.database = db_perpus_230202048
     database.default.username = root
     database.default.password =
     database.default.DBDriver = MySQLi
+```
 
 3. Struktur Database (SQL)
-
+```
  CREATE DATABASE db_perpus_230202048;
-
  USE db_perpus_230202048;
-
  CREATE TABLE buku (
    id INT AUTO_INCREMENT PRIMARY KEY,
    judul VARCHAR(100),
@@ -23,7 +25,6 @@
    penerbit VARCHAR(100),
    tahun_terbit INT
  );
-
  CREATE TABLE peminjaman (
    id INT AUTO_INCREMENT PRIMARY KEY,
    nama_peminjam VARCHAR(100),
@@ -31,8 +32,9 @@
    tanggal_pinjam DATE,
    tanggal_kembali DATE
  );
-
+```
 4. Buat di folder model
+```
  File: app/Models/BukuModel.php
  namespace App\Models;
  use CodeIgniter\Model;
@@ -49,13 +51,13 @@
     protected $table = 'peminjaman';
     protected $primaryKey = 'id';
     protected $allowedFields = ['nama_peminjam', 'judul_buku', 'tanggal_pinjam', 'tanggal_kembali'];
-}
+    }
 
- File: app/Controllers/Buku.php
- namespace App\Controllers;
- use App\Models\BukuModel;
- use CodeIgniter\RESTful\ResourceController;
- class Buku extends ResourceController {
+     File: app/Controllers/Buku.php
+     namespace App\Controllers;
+     use App\Models\BukuModel;
+     use CodeIgniter\RESTful\ResourceController;
+    class Buku extends ResourceController {
     protected $modelName = 'App\\Models\\BukuModel';
     protected $format = 'json';
 
@@ -87,13 +89,13 @@
             $this->respondDeleted(['message' => 'Buku deleted successfully']) :
             $this->failNotFound('Buku not found');
     }
- }
+     }
 
- File: app/Controllers/Peminjaman.php
- namespace App\Controllers;
- use App\Models\PeminjamanModel;
- use CodeIgniter\RESTful\ResourceController;
- class Peminjaman extends ResourceController {
+     File: app/Controllers/Peminjaman.php
+     namespace App\Controllers;
+     use App\Models\PeminjamanModel;
+     use CodeIgniter\RESTful\ResourceController;
+     class Peminjaman extends ResourceController {
     protected $modelName = 'App\\Models\\PeminjamanModel';
     protected $format = 'json';
 
@@ -126,8 +128,10 @@
             $this->failNotFound('Peminjaman not found');
     }
  }
+```
 
 5. Buat di folder routes
+```
  File: app/Config/Routes.php
  $routes->get('/', 'Home::index');
 
@@ -142,12 +146,17 @@
  $routes->post('peminjaman', 'Peminjaman::create');
  $routes->put('peminjaman/(:num)', 'Peminjaman::update/$1');
  $routes->delete('peminjaman/(:num)', 'Peminjaman::delete/$1');
+```
 
 6. Jalankan server dengan:
+```
    php spark serve
+```
 
 7. Cek endpoint di Postman atau browser.
+```
    Contoh endpoint: http://localhost:8080/buku
+```
 
 # Frontend UAS - Laravel (NIM: 230202048)
 
@@ -155,19 +164,20 @@
 
 1. Buka terminal di laptop atau PC kamu.
 2. Jalankan perintah berikut untuk membuat project Laravel:
-
+```
    composer create-project --prefer-dist laravel/laravel frontend_uas_230202048
-
+```
 3. Setelah selesai, buka folder frontend_uas_230202048 di editor.
 
 4. Tambahkan library PDF dengan perintah:
-
+```
    composer require barryvdh/laravel-dompdf
-
+```
 5. Masuk ke folder:
+```
    app/Http/Controllers
-
-6. Buat satu file controller baru bernama PerpusController.php dengan isi sebagai berikut:
+```
+7. Buat satu file controller baru bernama PerpusController.php dengan isi sebagai berikut:
 
 ```php
 <?php
