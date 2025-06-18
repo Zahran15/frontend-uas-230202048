@@ -36,7 +36,6 @@
         <h4 class="text-center mt-3">Dashboard</h4>
         <a href="{{ url('/buku') }}">Buku</a>
         <a href="{{ url('/peminjaman') }}">Peminjaman</a>
-        <!-- Tambahkan link lainnya sesuai kebutuhan -->
     </div>
     
     <div class="content">
@@ -48,8 +47,6 @@
         
         @yield('content')
     </div>
-
-    <!-- Tambahkan JS jika diperlukan -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
