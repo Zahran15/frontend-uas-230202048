@@ -8,7 +8,7 @@
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
-
+    <a href="{{ route('buku.export.pdf') }}" class="btn btn-secondary mb-3">Export PDF</a>
     <table class="table table-bordered table-striped">
         <thead>
             <tr>

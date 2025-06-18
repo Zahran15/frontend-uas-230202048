@@ -5,9 +5,23 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PeminjamanController extends Controller
+{   
+public function exportSinglePDF($id)
 {
+    $response = Http::get("http://localhost:8080/peminjaman/$id");
+
+    if ($response->successful()) {
+        $peminjaman = $response->json();
+
+        $pdf = Pdf::loadView('peminjaman.export-pdf-single', ['peminjaman' => $peminjaman]);
+        return $pdf->download("peminjaman_{$id}.pdf");
+    }
+
+    return back()->with('error', 'Data peminjaman tidak ditemukan.');
+}
     public function index()
     {
         $response = Http::get('http://localhost:8080/peminjaman');

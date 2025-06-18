@@ -5,9 +5,18 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class BukuController extends Controller
-{
+{   
+   public function exportPDF()
+    {
+        $response = Http::get('http://localhost:8080/buku');
+        $data = $response->json(); // asumsi response JSON berisi array of buku
+
+        $pdf = Pdf::loadView('buku.export-pdf', ['data' => $data]);
+        return $pdf->download('data_buku.pdf');
+    }
     public function index()
     {
         $response = Http::get('http://localhost:8080/buku');
