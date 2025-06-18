@@ -1,4 +1,153 @@
+# File: backend_perpustakaan/index.php
 
+1. Jalankan composer install terlebih dahulu jika belum
+   composer create-project codeigniter4/appstarter backend_perpustakaan
+
+2. Konfigurasi Database (di .env file)
+    database.default.hostname = localhost
+    database.default.database = db_perpus_230202048
+    database.default.username = root
+    database.default.password =
+    database.default.DBDriver = MySQLi
+
+3. Struktur Database (SQL)
+
+ CREATE DATABASE db_perpus_230202048;
+
+ USE db_perpus_230202048;
+
+ CREATE TABLE buku (
+   id INT AUTO_INCREMENT PRIMARY KEY,
+   judul VARCHAR(100),
+   pengarang VARCHAR(100),
+   penerbit VARCHAR(100),
+   tahun_terbit INT
+ );
+
+ CREATE TABLE peminjaman (
+   id INT AUTO_INCREMENT PRIMARY KEY,
+   nama_peminjam VARCHAR(100),
+   judul_buku VARCHAR(100),
+   tanggal_pinjam DATE,
+   tanggal_kembali DATE
+ );
+
+4. Buat di folder model
+ File: app/Models/BukuModel.php
+ namespace App\Models;
+ use CodeIgniter\Model;
+ class BukuModel extends Model {
+    protected $table = 'buku';
+    protected $primaryKey = 'id';
+    protected $allowedFields = ['judul', 'pengarang', 'penerbit', 'tahun_terbit'];
+ }
+
+ File: app/Models/PeminjamanModel.php
+ namespace App\Models;
+ use CodeIgniter\Model;
+ class PeminjamanModel extends Model {
+    protected $table = 'peminjaman';
+    protected $primaryKey = 'id';
+    protected $allowedFields = ['nama_peminjam', 'judul_buku', 'tanggal_pinjam', 'tanggal_kembali'];
+}
+
+ File: app/Controllers/Buku.php
+ namespace App\Controllers;
+ use App\Models\BukuModel;
+ use CodeIgniter\RESTful\ResourceController;
+ class Buku extends ResourceController {
+    protected $modelName = 'App\\Models\\BukuModel';
+    protected $format = 'json';
+
+    public function index() {
+        return $this->respond($this->model->findAll());
+    }
+
+    public function show($id = null) {
+        $data = $this->model->find($id);
+        return $data ? $this->respond($data) : $this->failNotFound('Buku not found');
+    }
+
+    public function create() {
+        $data = $this->request->getJSON(true);
+        return $this->model->insert($data) ?
+            $this->respondCreated(['id' => $this->model->insertID()]) :
+            $this->failValidationErrors($this->model->errors());
+    }
+
+    public function update($id = null) {
+        $data = $this->request->getJSON(true);
+        return $this->model->update($id, $data) ?
+            $this->respond(['message' => 'Buku updated successfully']) :
+            $this->failValidationErrors($this->model->errors());
+    }
+
+    public function delete($id = null) {
+        return $this->model->delete($id) ?
+            $this->respondDeleted(['message' => 'Buku deleted successfully']) :
+            $this->failNotFound('Buku not found');
+    }
+ }
+
+ File: app/Controllers/Peminjaman.php
+ namespace App\Controllers;
+ use App\Models\PeminjamanModel;
+ use CodeIgniter\RESTful\ResourceController;
+ class Peminjaman extends ResourceController {
+    protected $modelName = 'App\\Models\\PeminjamanModel';
+    protected $format = 'json';
+
+    public function index() {
+        return $this->respond($this->model->findAll());
+    }
+
+    public function show($id = null) {
+        $data = $this->model->find($id);
+        return $data ? $this->respond($data) : $this->failNotFound('Peminjaman not found');
+    }
+
+    public function create() {
+        $data = $this->request->getJSON(true);
+        return $this->model->insert($data) ?
+            $this->respondCreated(['id' => $this->model->insertID()]) :
+            $this->failValidationErrors($this->model->errors());
+    }
+
+    public function update($id = null) {
+        $data = $this->request->getJSON(true);
+        return $this->model->update($id, $data) ?
+            $this->respond(['message' => 'Peminjaman updated successfully']) :
+            $this->failValidationErrors($this->model->errors());
+    }
+
+    public function delete($id = null) {
+        return $this->model->delete($id) ?
+            $this->respondDeleted(['message' => 'Peminjaman deleted successfully']) :
+            $this->failNotFound('Peminjaman not found');
+    }
+ }
+
+5. Buat di folder routes
+ File: app/Config/Routes.php
+ $routes->get('/', 'Home::index');
+
+ $routes->resource('buku');
+ $routes->get('buku/(:num)', 'Buku::show/$1');
+ $routes->post('buku', 'Buku::create');
+ $routes->put('buku/(:num)', 'Buku::update/$1');
+ $routes->delete('buku/(:num)', 'Buku::delete/$1');
+
+ $routes->resource('peminjaman');
+ $routes->get('peminjaman/(:num)', 'Peminjaman::show/$1');
+ $routes->post('peminjaman', 'Peminjaman::create');
+ $routes->put('peminjaman/(:num)', 'Peminjaman::update/$1');
+ $routes->delete('peminjaman/(:num)', 'Peminjaman::delete/$1');
+
+6. Jalankan server dengan:
+   php spark serve
+
+7. Cek endpoint di Postman atau browser.
+   Contoh endpoint: http://localhost:8080/buku
 
 # Frontend UAS - Laravel (NIM: 230202048)
 
