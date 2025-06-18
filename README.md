@@ -1,61 +1,366 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+Backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Langkah pertama:
+Jalankan di terminal pc/laptop
+composer create-project codeigniter4/appstarter backend_perpustakaan
 
-## About Laravel
+Langkah kedua:
+Di routes.php
+<?php
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+use CodeIgniter\Router\RouteCollection;
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+/**
+ * @var RouteCollection $routes
+ */
+$routes->get('/', 'Home::index');
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+$routes->resource('buku');
+$routes->get( "buku/(:num)", 'Buku::show/$1');
+$routes->post('buku', 'Buku::create');
+$routes->put('buku/(:num)', 'Buku::update/$1');
+$routes->delete('buku/(:num)', 'Buku::delete/$1');
 
-## Learning Laravel
+$routes->resource('peminjaman');
+$routes->get( "peminjaman/(:num)", 'Peminjaman::show/$1');
+$routes->post('peminjaman', 'Peminjaman::create');
+$routes->put('peminjaman/(:num)', 'Peminjaman::update/$1');
+$routes->delete('peminjaman/(:num)', 'Peminjaman::delete/$1');
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Langkah ketiga:
+Di folder Controller tambah
+Buku.php:
+<?php 
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+namespace App\Controllers;
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+use App\Models\BukuModel;
+use CodeIgniter\RESTful\ResourceController;
 
-## Laravel Sponsors
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+class Buku extends ResourceController 
+{
+    protected $modelName = 'App\\Models\\BukuModel';
+    protected $format    = 'json';
 
-### Premium Partners
+    public function __construct()
+    {
+        $this->model = new BukuModel();
+    }
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+    public function index()
+    {
+        $buku = $this->model->findAll();
+        return $this->respond($buku);
+    }
 
-## Contributing
+    public function show($id = null)
+    {
+        $buku = $this->model->find($id);
+        if (!$buku) {
+            return $this->failNotFound('Buku not found');
+        }
+        return $this->respond($buku);
+    }
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+    public function create()
+    {
+        $data = $this->request->getJSON(true);
+        if ($this->model->insert($data)) {
+            return $this->respondCreated(['id' => $this->model->insertID()]);
+        } else {
+            return $this->failValidationErrors($this->model->errors());
+        }
+    }
 
-## Code of Conduct
+    public function update($id = null)
+    {
+        $data = $this->request->getJSON(true);
+        if ($this->model->update($id, $data)) {
+            return $this->respond(['message' => 'Buku updated successfully']);
+        } else {
+            return $this->failValidationErrors($this->model->errors());
+        }
+    }
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+    public function delete($id = null)
+    {
+        if ($this->model->delete($id)) {
+            return $this->respondDeleted(['message' => 'Buku deleted successfully']);
+        } else {
+            return $this->failNotFound('Buku not found');
+        }
+    }
+}
 
-## Security Vulnerabilities
+Peminjaman.php:
+<?php 
+namespace App\Controllers;
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+use App\Models\PeminjamanModel;
+use CodeIgniter\RESTful\ResourceController;
 
-## License
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+class Peminjaman extends ResourceController {
+    protected $modelName = 'App\\Models\\PeminjamanModel';
+    protected $format    = 'json';
+
+    public function __construct()
+    {
+        $this->model = new PeminjamanModel();
+    }
+
+    public function index()
+    {
+        $peminjaman = $this->model->findAll();
+        return $this->respond($peminjaman);
+    }
+
+    public function show($id = null)
+    {
+        $peminjaman = $this->model->find($id);
+        if (!$peminjaman) {
+            return $this->failNotFound('Peminjaman not found');
+        }
+        return $this->respond($peminjaman);
+    }
+
+    public function create()
+    {
+        $data = $this->request->getJSON(true);
+        if ($this->model->insert($data)) {
+            return $this->respondCreated(['id' => $this->model->insertID()]);
+        } else {
+            return $this->failValidationErrors($this->model->errors());
+        }
+    }   
+
+
+    public function update($id = null)
+    {
+        $data = $this->request->getJSON(true);
+        if ($this->model->update($id, $data)) {
+            return $this->respond(['message' => 'Peminjaman updated successfully']);
+        } else {
+            return $this->failValidationErrors($this->model->errors());
+        }
+    }
+
+    public function delete($id = null)
+    {
+        if ($this->model->delete($id)) {
+            return $this->respondDeleted(['message' => 'Peminjaman deleted successfully']);
+        } else {
+            return $this->failNotFound('Peminjaman not found');
+        }
+    }
+}
+
+Langkah keempat:
+Tes di postman 
+apakah bisa dipanggil atau tidak
+
+
+Frontend
+Langkah pertama:
+Jalankan Diterminal pc/laptop:
+composer create-project --prefer-dist laravel/laravel frontend_uas_230202048
+
+Langkah kedua:
+buka folder app\Http\Controllers dan buat file 
+BukuController.php:
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Barryvdh\DomPDF\Facade\Pdf;
+
+class BukuController extends Controller
+{   
+   public function exportPDF()
+    {
+        $response = Http::get('http://localhost:8080/buku');
+        $data = $response->json(); // asumsi response JSON berisi array of buku
+
+        $pdf = Pdf::loadView('buku.export-pdf', ['data' => $data]);
+        return $pdf->download('data_buku.pdf');
+    }
+    public function index()
+    {
+        $response = Http::get('http://localhost:8080/buku');
+        $buku = $response->json();
+        return view('buku.index', compact('buku'));
+    }
+
+    public function create()
+    {
+        return view('buku.create');
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'judul' => 'required|string|max:100',
+            'pengarang' => 'required|string|max:50',
+            'penerbit' => 'required|string|max:50',
+            'tahun_terbit' => 'required|digits:4|integer',
+        ]);
+
+        $response = Http::asJson()->post('http://localhost:8080/buku', $request->all());
+
+        if ($response->successful()) {
+            return redirect()->route('buku.index')->with('success', 'Buku berhasil ditambahkan.');
+        }
+
+        return back()->withErrors(['error' => 'Gagal menambahkan buku'])->withInput();
+    }
+
+    public function edit($id)
+    {
+        $response = Http::get("http://localhost:8080/buku/$id");
+
+        if ($response->successful()) {
+            $buku = $response->json();
+            return view('buku.edit', compact('buku'));
+        }
+
+        return back()->with('error', 'Data buku tidak ditemukan.');
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'judul' => 'required|string|max:100',
+            'pengarang' => 'required|string|max:50',
+            'penerbit' => 'required|string|max:50',
+            'tahun_terbit' => 'required|digits:4|integer',
+        ]);
+
+        $response = Http::put("http://localhost:8080/buku/$id", $request->all());
+
+        if ($response->successful()) {
+            return redirect()->route('buku.index')->with('success', 'Buku berhasil diperbarui.');
+        }
+
+        return back()->withErrors(['error' => 'Gagal mengupdate buku'])->withInput();
+    }
+
+    public function destroy($id)
+    {
+        $response = Http::delete("http://localhost:8080/buku/$id");
+
+        if ($response->successful()) {
+            return redirect()->route('buku.index')->with('success', 'Buku berhasil dihapus.');
+        }
+
+        return back()->with('error', 'Gagal menghapus buku.');
+    }
+}
+
+PeminjamanController.php:
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Barryvdh\DomPDF\Facade\Pdf;
+
+class PeminjamanController extends Controller
+{   
+public function exportSinglePDF($id)
+{
+    $response = Http::get("http://localhost:8080/peminjaman/$id");
+
+    if ($response->successful()) {
+        $peminjaman = $response->json();
+
+        $pdf = Pdf::loadView('peminjaman.export-pdf-single', ['peminjaman' => $peminjaman]);
+        return $pdf->download("peminjaman_{$id}.pdf");
+    }
+
+    return back()->with('error', 'Data peminjaman tidak ditemukan.');
+}
+    public function index()
+    {
+        $response = Http::get('http://localhost:8080/peminjaman');
+        $peminjaman = $response->json();
+        return view('peminjaman.index', compact('peminjaman'));
+    }
+
+    public function create()
+    {
+        return view('peminjaman.create');
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'nama_peminjam' => 'required|string|max:100',
+            'judul_buku' => 'required|string|max:100',
+            'tanggal_pinjam' => 'required|date',
+            'tanggal_kembali' => 'required|date|after_or_equal:tanggal_pinjam',
+        ]);
+
+        $response = Http::asJson()->post('http://localhost:8080/peminjaman', $request->all());
+
+        if ($response->successful()) {
+            return redirect()->route('peminjaman.index')->with('success', 'Data peminjaman berhasil ditambahkan.');
+        }
+
+        return back()->withErrors(['error' => 'Gagal menambahkan data peminjaman'])->withInput();
+    }
+
+    public function edit($id)
+    {
+        $response = Http::get("http://localhost:8080/peminjaman/$id");
+
+        if ($response->successful()) {
+            $peminjaman = $response->json();
+            return view('peminjaman.edit', compact('peminjaman'));
+        }
+
+        return back()->with('error', 'Data peminjaman tidak ditemukan.');
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'nama_peminjam' => 'required|string|max:100',
+            'judul_buku' => 'required|string|max:100',
+            'tanggal_pinjam' => 'required|date',
+            'tanggal_kembali' => 'required|date|after_or_equal:tanggal_pinjam',
+        ]);
+
+        $response = Http::put("http://localhost:8080/peminjaman/$id", $request->all());
+
+        if ($response->successful()) {
+            return redirect()->route('peminjaman.index')->with('success', 'Data peminjaman berhasil diperbarui.');
+        }
+
+        return back()->withErrors(['error' => 'Gagal mengupdate data peminjaman'])->withInput();
+    }
+
+    public function destroy($id)
+    {
+        $response = Http::delete("http://localhost:8080/peminjaman/$id");
+
+        if ($response->successful()) {
+            return redirect()->route('peminjaman.index')->with('success', 'Data peminjaman berhasil dihapus.');
+        }
+
+        return back()->with('error', 'Gagal menghapus data peminjaman.');
+    }
+}
+
+Langkah
